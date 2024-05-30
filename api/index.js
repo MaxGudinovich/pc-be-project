@@ -63,11 +63,23 @@ app.post('/users', async (req, res) => {
       return res.status(400).send('Email already exists');
     }
 
-    const newUser = new User({ name, email, photo });
+    const newUser = new User({
+      name,
+      email,
+      photo: Buffer.from(photo, 'base64'),
+    });
     console.log('Saving new user to the database...');
     await newUser.save();
     console.log('User saved successfully:', newUser);
-    res.status(201).send(newUser);
+
+    const userResponse = {
+      _id: newUser._id,
+      name: newUser.name,
+      email: newUser.email,
+      photo: newUser.photo.toString('base64'), // Преобразование буфера обратно в строку base64
+    };
+
+    res.status(201).send(userResponse);
   } catch (error) {
     console.error('Error while saving user:', error);
     res.status(400).send(error.message);
@@ -78,7 +90,15 @@ app.get('/users', async (req, res) => {
   try {
     console.log('Received GET /users request');
     const users = await User.find();
-    res.status(200).send(users);
+
+    const usersResponse = users.map((user) => ({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      photo: user.photo.toString('base64'),
+    }));
+
+    res.status(200).send(usersResponse);
   } catch (error) {
     res.status(400).send(error.message);
   }
@@ -98,7 +118,14 @@ app.get('/users/:id', async (req, res) => {
       return res.status(404).send('User not found');
     }
 
-    res.status(200).send(user);
+    const userResponse = {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      photo: user.photo.toString('base64'),
+    };
+
+    res.status(200).send(userResponse);
   } catch (error) {
     res.status(400).send(error.message);
   }
