@@ -76,7 +76,7 @@ app.post('/users', async (req, res) => {
       _id: newUser._id,
       name: newUser.name,
       email: newUser.email,
-      photo: newUser.photo.toString('base64'), // Преобразование буфера обратно в строку base64
+      photo: newUser.photo.data.toString('base64'), // Преобразование буфера обратно в строку base64
     };
 
     res.status(201).send(userResponse);
@@ -95,7 +95,7 @@ app.get('/users', async (req, res) => {
       _id: user._id,
       name: user.name,
       email: user.email,
-      photo: user.photo.toString('base64'),
+      photo: user.photo.data.toString('base64'),
     }));
 
     res.status(200).send(usersResponse);
@@ -122,7 +122,7 @@ app.get('/users/:id', async (req, res) => {
       _id: user._id,
       name: user.name,
       email: user.email,
-      photo: user.photo.toString('base64'),
+      photo: user.photo.data.toString('base64'),
     };
 
     res.status(200).send(userResponse);
