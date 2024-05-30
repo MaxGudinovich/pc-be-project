@@ -32,8 +32,9 @@ const client = new MongoClient(uri, {
     strict: true,
     deprecationErrors: true,
   },
-  connectTimeoutMS: 30000,
-  socketTimeoutMS: 30000,
+  serverSelectionTimeoutMS: 60000,
+  connectTimeoutMS: 60000,
+  socketTimeoutMS: 60000,
 });
 
 mongoose.set('strictQuery', false);
@@ -43,7 +44,7 @@ async function connectToMongoDB() {
     await mongoose.connect(uri, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 30000,
+      serverSelectionTimeoutMS: 60000,
     });
     console.log('Mongoose connected to ' + uri);
   } catch (err) {
