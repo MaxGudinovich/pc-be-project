@@ -1,7 +1,6 @@
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
-const multer = require('multer');
 const User = require('../models/user');
 const bodyParser = require('body-parser');
 const path = require('path');
@@ -11,17 +10,6 @@ const PORT = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-
-/* const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/');
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));
-  },
-});
-
-const upload = multer({ storage }); */
 
 const uri = process.env.MONGODB_URI;
 
@@ -44,7 +32,7 @@ async function connectToMongoDB() {
 connectToMongoDB();
 
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*'); // Разрешить доступ со всех доменов
+  res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET,HEAD,OPTIONS,POST,PUT');
   res.header(
     'Access-Control-Allow-Headers',
@@ -55,83 +43,62 @@ app.use((req, res, next) => {
 
 app.post('/users', async (req, res) => {
   try {
-    console.log('Received POST /users request with body:', req.body);
-    const { name, email, photo } = req.body;
+    const { name, email, photoBase64 } = req.body;
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).send('Email already exists');
     }
 
+    const base64Data = photoBase64.replace(/^data:image\/\w+;base64,/, '');
+    const buffer = Buffer.from(base64Data, 'base64');
+    const fileName = `${Date.now()}-${name}.png`;
+    const filePath = path.join(__dirname, 'uploads', fileName);
+
+    fs.writeFileSync(filePath, buffer);
+
     const newUser = new User({
       name,
       email,
-      photo: Buffer.from(photo, 'base64'),
+      photoUrl: `/uploads/${fileName}`,
     });
-    console.log('Saving new user to the database...');
+
     await newUser.save();
-    console.log('User saved successfully:', newUser);
 
-    const userResponse = {
-      _id: newUser._id,
-      name: newUser.name,
-      email: newUser.email,
-      photo: Buffer.from(newUser.photo, 'base64').toString('utf-8'), // Преобразование буфера обратно в строку base64
-    };
-
-    res.status(201).send(userResponse);
+    res.status(201).send('User created successfully');
   } catch (error) {
-    console.error('Error while saving user:', error);
-    res.status(400).send(error.message);
+    console.error('Error while creating user:', error);
+    res.status(500).send('Error creating user');
   }
 });
 
 app.get('/users', async (req, res) => {
   try {
-    console.log('Received GET /users request');
     const users = await User.find();
-
-    const usersResponse = users.map((user) => ({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      photo: user.photo.toString('base64'),
-    }));
-
-    res.status(200).send(usersResponse);
+    res.status(200).send(users);
   } catch (error) {
-    res.status(400).send(error.message);
+    console.error('Error while fetching users:', error);
+    res.status(500).send('Error fetching users');
   }
 });
 
 app.get('/users/:id', async (req, res) => {
   try {
     const userId = req.params.id;
-
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).send('Invalid user ID');
-    }
-
     const user = await User.findById(userId);
 
     if (!user) {
       return res.status(404).send('User not found');
     }
 
-    const userResponse = {
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      photo: user.photo.toString('base64'),
-    };
-
-    res.status(200).send(userResponse);
+    res.status(200).send(user);
   } catch (error) {
-    res.status(400).send(error.message);
+    console.error('Error while fetching user:', error);
+    res.status(500).send('Error fetching user');
   }
 });
 
-app.use('/uploads', express.static('uploads'));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
