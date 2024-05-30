@@ -12,7 +12,7 @@ const PORT = process.env.PORT || 3000;
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-/* const storage = multer.diskStorage({
+const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, 'uploads/');
   },
@@ -21,7 +21,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
   },
 });
 
-const upload = multer({ storage }); */
+const upload = multer({ storage });
 
 const uri = process.env.MONGODB_URI;
 
@@ -43,17 +43,20 @@ async function connectToMongoDB() {
 
 connectToMongoDB();
 
-app.post('/users', async (req, res) => {
+app.post('/users', upload.single('photo'), async (req, res) => {
   try {
     console.log('Received POST /users request with body:', req.body);
     const { name, email } = req.body;
+
+    // Получаем имя файла, если оно было загружено
+    const photo = req.file ? req.file.filename : null;
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).send('Email already exists');
     }
 
-    const newUser = new User({ name, email });
+    const newUser = new User({ name, email, photo });
     console.log('Saving new user to the database...');
     await newUser.save();
     console.log('User saved successfully:', newUser);
@@ -64,11 +67,27 @@ app.post('/users', async (req, res) => {
   }
 });
 
-app.get('/users', async (req, res) => {
+app.get('/users/:id', async (req, res) => {
   try {
-    console.log('Received GET /users request');
-    const users = await User.find();
-    res.status(200).send(users);
+    const userId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).send('Invalid user ID');
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).send('User not found');
+    }
+
+    // Преобразование изображения в base64 перед отправкой
+    const userWithBase64Photo = {
+      ...user.toJSON(),
+      photo: user.photo.toString('base64'),
+    };
+
+    res.status(200).send(userWithBase64Photo);
   } catch (error) {
     res.status(400).send(error.message);
   }
@@ -101,3 +120,5 @@ app.listen(PORT, () => {
 });
 
 module.exports = app;
+
+//fix
