@@ -1,6 +1,5 @@
 require('dotenv').config();
 const express = require('express');
-const { Buffer } = require('buffer');
 const mongoose = require('mongoose');
 const multer = require('multer');
 const User = require('../models/user');
