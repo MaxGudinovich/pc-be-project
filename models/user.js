@@ -11,7 +11,7 @@ const userSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
-    photo: { type: Buffer },
+    photo: Buffer,
   },
   { versionKey: false }
 );
