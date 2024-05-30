@@ -12,7 +12,7 @@ const PORT = process.env.PORT || 3000;
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-/* const storage = multer.diskStorage({
+const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, 'uploads/');
   },
@@ -21,7 +21,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
   },
 });
 
-const upload = multer({ storage }); */
+const upload = multer({ storage });
 
 const uri = process.env.MONGODB_URI;
 
@@ -46,14 +46,16 @@ connectToMongoDB();
 app.post('/users', async (req, res) => {
   try {
     console.log('Received POST /users request with body:', req.body);
-    const { name, email } = req.body;
+    const { name, email, photo } = req.body;
+
+    const photoData = Buffer.from(photo, 'base64');
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).send('Email already exists');
     }
 
-    const newUser = new User({ name, email });
+    const newUser = new User({ name, email, photo: photoData });
     console.log('Saving new user to the database...');
     await newUser.save();
     console.log('User saved successfully:', newUser);
