@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const { Buffer } = require('buffer');
 const mongoose = require('mongoose');
 const multer = require('multer');
 const User = require('../models/user');
@@ -76,7 +77,7 @@ app.post('/users', async (req, res) => {
       _id: newUser._id,
       name: newUser.name,
       email: newUser.email,
-      photo: newUser.photo.toString('base64'), // Преобразование буфера обратно в строку base64
+      photo: Buffer.from(newUser.photo, 'base64').toString('utf-8'), // Преобразование буфера обратно в строку base64
     };
 
     res.status(201).send(userResponse);
