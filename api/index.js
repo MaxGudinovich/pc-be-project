@@ -43,17 +43,27 @@ async function connectToMongoDB() {
 
 connectToMongoDB();
 
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*'); // Разрешить доступ со всех доменов
+  res.header('Access-Control-Allow-Methods', 'GET,HEAD,OPTIONS,POST,PUT');
+  res.header(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, Content-Type, Accept, Authorization'
+  );
+  next();
+});
+
 app.post('/users', async (req, res) => {
   try {
     console.log('Received POST /users request with body:', req.body);
-    const { name, email } = req.body;
+    const { name, email, photo } = req.body;
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).send('Email already exists');
     }
 
-    const newUser = new User({ name, email });
+    const newUser = new User({ name, email, photo });
     console.log('Saving new user to the database...');
     await newUser.save();
     console.log('User saved successfully:', newUser);
