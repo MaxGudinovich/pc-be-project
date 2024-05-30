@@ -43,19 +43,20 @@ async function connectToMongoDB() {
 
 connectToMongoDB();
 
-app.post('/users', async (req, res) => {
+app.post('/users', upload.single('photo'), async (req, res) => {
   try {
     console.log('Received POST /users request with body:', req.body);
-    const { name, email, photo } = req.body;
+    const { name, email } = req.body;
 
-    const photoData = Buffer.from(photo, 'base64');
+    // Получаем имя файла, если оно было загружено
+    const photo = req.file ? req.file.filename : null;
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).send('Email already exists');
     }
 
-    const newUser = new User({ name, email, photo: photoData });
+    const newUser = new User({ name, email, photo });
     console.log('Saving new user to the database...');
     await newUser.save();
     console.log('User saved successfully:', newUser);
