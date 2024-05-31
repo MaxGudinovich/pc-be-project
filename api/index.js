@@ -70,8 +70,6 @@ app.post('/users', async (req, res) => {
 
     await newUser.save();
 
-    await newUser.save();
-
     res.status(201).send('User created successfully');
   } catch (error) {
     console.error('Error while creating user:', error);
