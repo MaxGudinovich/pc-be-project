@@ -4,7 +4,6 @@ const mongoose = require('mongoose');
 const User = require('../models/user');
 const bodyParser = require('body-parser');
 const path = require('path');
-const { Blob } = require('@vercel/blob');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -44,23 +43,12 @@ app.use((req, res, next) => {
 
 app.post('/users', async (req, res) => {
   try {
-    const { name, email, photoBase64 } = req.body;
+    const { name, email, photoUrl } = req.body;
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).send('Email already exists');
     }
-
-    const base64Data = photoBase64.replace(/^data:image\/\w+;base64,/, '');
-    const buffer = Buffer.from(base64Data, 'base64');
-    const blob = new Blob();
-
-    const response = await blob.upload(buffer, {
-      filename: `${Date.now()}-${name}.png`,
-      contentType: 'image/png',
-      access: 'public',
-    });
-    const photoUrl = response.url;
 
     const newUser = new User({
       name,
