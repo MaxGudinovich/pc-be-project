@@ -52,7 +52,12 @@ app.post('/users', async (req, res) => {
 
     const newUser = new User({
       name,
+      lastName,
+      occupation,
+      age,
+      city,
       email,
+      description,
       photoUrl,
     });
 
