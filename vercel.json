@@ -6,11 +6,10 @@
       "use": "@vercel/node"
     }
   ],
+  "env": {
+    "BLOB_READ_WRITE_TOKEN": "vercel_blob_rw_m57E5C7d50ks8FIy_eeBOOsHYCZN9ogD2zresUpjqpSNcrV"
+  },
   "routes": [
-    {
-      "src": "/uploads/(.*)",
-      "dest": "/uploads/$1"
-    },
     {
       "src": "/(.*)",
       "headers": {

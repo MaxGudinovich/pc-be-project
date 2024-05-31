@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const User = require('../models/user');
 const bodyParser = require('body-parser');
 const path = require('path');
+const { Blob } = require('@vercel/blob');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -52,16 +53,22 @@ app.post('/users', async (req, res) => {
 
     const base64Data = photoBase64.replace(/^data:image\/\w+;base64,/, '');
     const buffer = Buffer.from(base64Data, 'base64');
-    const fileName = `${Date.now()}-${name}.png`;
-    const filePath = path.join(__dirname, 'uploads', fileName);
+    const blob = new Blob();
 
-    fs.writeFileSync(filePath, buffer);
+    const response = await blob.upload(buffer, {
+      filename: `${Date.now()}-${name}.png`,
+      contentType: 'image/png',
+      access: 'public',
+    });
+    const photoUrl = response.url;
 
     const newUser = new User({
       name,
       email,
-      photoUrl: `/uploads/${fileName}`,
+      photoUrl,
     });
+
+    await newUser.save();
 
     await newUser.save();
 
@@ -97,8 +104,6 @@ app.get('/users/:id', async (req, res) => {
     res.status(500).send('Error fetching user');
   }
 });
-
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
