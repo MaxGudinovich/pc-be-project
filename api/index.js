@@ -43,7 +43,16 @@ app.use((req, res, next) => {
 
 app.post('/users', async (req, res) => {
   try {
-    const { name, email, photoUrl } = req.body;
+    const {
+      name,
+      lastName,
+      occupation,
+      age,
+      city,
+      email,
+      description,
+      photoUrl,
+    } = req.body;
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
