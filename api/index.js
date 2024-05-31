@@ -58,7 +58,10 @@ app.post('/users', async (req, res) => {
 
     await newUser.save();
 
-    res.status(201).send('User created successfully');
+    res.status(201).json({
+      message: 'User created successfully',
+      user: newUser,
+    });
   } catch (error) {
     console.error('Error while creating user:', error);
     res.status(500).send('Error creating user');
