@@ -52,6 +52,7 @@ app.post('/users', async (req, res) => {
       email,
       description,
       photoUrl,
+      socialMediaUrl,
     } = req.body;
 
     const existingUser = await User.findOne({ email });
@@ -68,6 +69,7 @@ app.post('/users', async (req, res) => {
       email,
       description,
       photoUrl,
+      socialMediaUrl,
     });
 
     await newUser.save();

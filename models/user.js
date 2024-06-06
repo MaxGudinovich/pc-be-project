@@ -10,6 +10,7 @@ const userSchema = new mongoose.Schema(
     email: String,
     description: String,
     photoUrl: String,
+    socialMediaUrl: String,
   },
   { versionKey: false }
 );
